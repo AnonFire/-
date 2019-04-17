@@ -48,7 +48,7 @@ def handle_dialog(res, req):
         if first_name is None:
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
-            sessionStorage[user_id]['first_name'] = first_name
+            sessionStorage[user_id]['first_name'] = first_name[:]
             # создаём пустой массив, в который будем записывать фразы,
             # которые пользователь уже отгадал
             # как видно из предыдущего навыка, сюда мы попали,
@@ -80,8 +80,8 @@ def handle_dialog(res, req):
             # игра не начата, значит мы ожидаем ответ на предложение сыграть.
             if 'да' in req['request']['nlu']['tokens']:
                 sessionStorage[user_id]['game_started'] = True
-                res['response']['text'] = sessionStorage[user_id]["first_name"]
-                res['response']['text'] = res['response']['text'].title()
+                fn = sessionStorage[user_id]["first_name"][:]
+                res['response']['text'] = fn.title()
                 res['response']['text'] += ', во что ты хочешь сыграть?\n'
                 res['response']['text'] += ' Продолжить известную стихотворную'
                 res['response']['text'] += ' строчку, знаменитую латинскую фра'
@@ -255,6 +255,7 @@ def handle_dialog(res, req):
         else:
             ng = not frasa and 'да' in req['request']['nlu']['tokens']
             ng = ng or sessionStorage[user_id]['frasi'] == []
+            ng = ng or frasa
             if ng:
                 games[sessionStorage[user_id]['resim'] - 1](res, req)
             elif 'нет' in req['request']['nlu']['tokens']:
