@@ -12,6 +12,7 @@ logging.basicConfig(level=logging.INFO)
 sessionStorage = {}
 frasa = None
 
+
 @app.route('/post', methods=['POST'])
 def main():
     logging.info('Request: %r', request.json)
@@ -34,10 +35,11 @@ def handle_dialog(res, req):
         res['response']['text'] = 'Привет! Назови своё имя!'
         sessionStorage[user_id] = {
             'first_name': None,  # здесь будет храниться имя
-            'game_started': False ,
+            'game_started': False,
             'resim': 0,
             'frasi': []
-            # здесь информация о том, что пользователь начал игру. По умолчанию False
+            # здесь информация о том, что пользователь начал игру.
+            # По умолчанию False
         }
         return
 
@@ -47,10 +49,14 @@ def handle_dialog(res, req):
             res['response']['text'] = 'Не расслышала имя. Повтори, пожалуйста!'
         else:
             sessionStorage[user_id]['first_name'] = first_name
-            # создаём пустой массив, в который будем записывать города, которые пользователь уже отгадал
-            # как видно из предыдущего навыка, сюда мы попали, потому что пользователь написал своем имя.
+            # создаём пустой массив, в который будем записывать фразы,
+            # которые пользователь уже отгадал
+            # как видно из предыдущего навыка, сюда мы попали,
+            # потому что пользователь написал своем имя.
             # Предлагаем ему сыграть и два варианта ответа "Да" и "Нет".
-            res['response']['text'] = f'Приятно познакомиться, {first_name.title()}. Я Алиса. Сыграем?'
+            res['response']['text'] = 'Приятно познакомиться, '
+            res['response']['text'] += first_name.title()
+            res['response']['text'] += '. Я Алиса. Сыграем?'
             res['response']['buttons'] = [
                 {
                     'title': 'Да',
@@ -67,13 +73,19 @@ def handle_dialog(res, req):
             ]
     else:
         # У нас уже есть имя, и теперь мы ожидаем ответ на предложение сыграть.
-        # В sessionStorage[user_id]['game_started'] хранится True или False в зависимости от того,
+        # В sessionStorage[user_id]['game_started'] хранится True или False
+        # в зависимости от того,
         # начал пользователь игру или нет.
         if not sessionStorage[user_id]['game_started']:
             # игра не начата, значит мы ожидаем ответ на предложение сыграть.
             if 'да' in req['request']['nlu']['tokens']:
                 sessionStorage[user_id]['game_started'] = True
-                res['response']['text'] = f'{sessionStorage[user_id]["first_name"].title()}, во что ты хочешь сыграть? Продолжить известную стихотворную строчку, знаменитую латинскую фразу или пословицу?'
+                res['response']['text'] = sessionStorage[user_id]["first_name"]
+                res['response']['text'] = res['response']['text'].title()
+                res['response']['text'] += ', во что ты хочешь сыграть?\n'
+                res['response']['text'] += ' Продолжить известную стихотворную'
+                res['response']['text'] += ' строчку, знаменитую латинскую фра'
+                res['response']['text'] += 'зу или пословицу?'
                 res['response']['buttons'] = [
                     {
                         'title': 'стихотворную строчку',
@@ -90,13 +102,23 @@ def handle_dialog(res, req):
                     {
                         'title': 'Помощь',
                         'hide': True
+                    },
+                    {
+                        'title': 'Смешной совет',
+                        'hide': True
                     }
-            ]
+                    ]
             elif 'нет' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
             elif 'помощь' in req['request']['nlu']['tokens']:
-                res['response']['text'] = '---'
+                res['response']['text'] = 'Я предлагаю тебе сыграть в игру. Я г'
+                res['response']['text'] += 'оворю тебе начало известной латинск'
+                res['response']['text'] += 'ой фразы/пословицы/стихотворной стр'
+                res['response']['text'] += 'очки (что выберешь), а ты продолжае'
+                res['response']['text'] += 'шь мою фразу. Сегодня я очень добра'
+                res['response']['text'] += 'я, поэтому дам тебе 3 варианта (оди'
+                res['response']['text'] += 'н из них верный)'
                 res['response']['buttons'] = [
                     {
                         'title': 'Да',
@@ -128,12 +150,16 @@ def handle_dialog(res, req):
                      }
                 ]
         elif not sessionStorage[user_id]['resim']:
+            lt = 'латинскую' in req['request']['nlu']['tokens']
+            lt = lt or 'фразу' in req['request']['nlu']['tokens']
+            smesh = 'Смешной' in req['request']['nlu']['tokens']
+            smesh = smesh or 'совет' in req['request']['nlu']['tokens']
             if 'стихотворную' in req['request']['nlu']['tokens']:
                 sessionStorage[user_id]['frasi'] = []
                 sessionStorage[user_id]['resim'] = 1
-                games[sessionStorage[user_id]['resim'] - 1](res, req)
+                games[0](res, req)
                 sessionStorage[user_id]['frasi'] = []
-            elif 'латинскую' in req['request']['nlu']['tokens'] or 'фразу' in req['request']['nlu']['tokens']:
+            elif lt:
                 sessionStorage[user_id]['frasi'] = []
                 sessionStorage[user_id]['resim'] = 2
                 games[sessionStorage[user_id]['resim'] - 1](res, req)
@@ -144,7 +170,13 @@ def handle_dialog(res, req):
                 sessionStorage[user_id]['frasi'] = []
                 games[sessionStorage[user_id]['resim'] - 1](res, req)
             elif 'помощь' in req['request']['nlu']['tokens']:
-                res['response']['text'] = '---'
+                res['response']['text'] = 'Я предлагаю тебе сыграть в игру. Я г'
+                res['response']['text'] += 'оворю тебе начало известной латинск'
+                res['response']['text'] += 'ой фразы/пословицы/стихотворной стр'
+                res['response']['text'] += 'очки (что выберешь), а ты продолжае'
+                res['response']['text'] += 'шь мою фразу. Сегодня я очень добра'
+                res['response']['text'] += 'я, поэтому дам тебе 3 варианта (оди'
+                res['response']['text'] += 'н из них верный)'
                 res['response']['buttons'] = [
                     {
                         'title': 'стихотворную строчку',
@@ -160,14 +192,19 @@ def handle_dialog(res, req):
                     },
                     {
                         'title': 'Помощь',
+                        'hide': True
+                    },
+                    {
+                        'title': 'Смешной совет',
                         'hide': True
                     }
                 ]
             elif 'хватит' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
-            else:
-                res['response']['text'] = 'Не поняла ответа! Так что ты выбираешь?'
+            elif smesh:
+                res['response']['text'] = 'Внимательно читай материальную часть'
+                res['response']['text'] += '!)'
                 res['response']['buttons'] = [
                     {
                         'title': 'стихотворную строчку',
@@ -184,16 +221,66 @@ def handle_dialog(res, req):
                     {
                         'title': 'Помощь',
                         'hide': True
+                    },
+                    {
+                        'title': 'Смешной совет',
+                        'hide': True
+                    }
+                ]
+            else:
+                res['response']['text'] = 'Не поняла ответа! Так что ты выбир'
+                res['response']['text'] += 'аешь?'
+                res['response']['buttons'] = [
+                    {
+                        'title': 'стихотворную строчку',
+                        'hide': True
+                    },
+                    {
+                        'title': 'латинскую фразу',
+                        'hide': True
+                    },
+                    {
+                        'title': 'пословицу',
+                        'hide': True
+                    },
+                    {
+                        'title': 'Помощь',
+                        'hide': True
+                    },
+                    {
+                        'title': 'Смешной совет',
+                        'hide': True
                     }
                 ]
         else:
-            if not frasa and 'да' in req['request']['nlu']['tokens'] or sessionStorage[user_id]['frasi'] == []:
+            ng = not frasa and 'да' in req['request']['nlu']['tokens']
+            ng = ng or sessionStorage[user_id]['frasi'] == []
+            if ng:
                 games[sessionStorage[user_id]['resim'] - 1](res, req)
             elif 'нет' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
             elif 'помощь' in req['request']['nlu']['tokens']:
-                res['response']['text'] = '---'
+                if sessionStorage[user_id]['resim'] == 1:
+                    res['response']['text'] = 'Я говорю тебе начало стихотворно'
+                    res['response']['text'] += 'й строчки, а ты должен её продо'
+                    res['response']['text'] += 'лжить. Всё просто. Я дам тебе 3'
+                    res['response']['text'] += ' варианта ответа, но только оди'
+                    res['response']['text'] += 'н из них правильный. Удачи!'
+                elif sessionStorage[user_id]['resim'] == 2:
+                    res['response']['text'] = 'Я говорю тебе начало известной л'
+                    res['response']['text'] += 'атинской фразы, а ты должен её '
+                    res['response']['text'] += 'продолжить. Всё просто. Я дам т'
+                    res['response']['text'] += 'ебе 3 варианта ответа, но тольк'
+                    res['response']['text'] += 'о один из них правильный. Удачи'
+                    res['response']['text'] += '!'
+                else:
+                    res['response']['text'] = 'Я говорю тебе начало известной '
+                    res['response']['text'] += 'пословицы, а ты должен её '
+                    res['response']['text'] += 'продолжить. Всё просто. Я дам т'
+                    res['response']['text'] += 'ебе 3 варианта ответа, но тольк'
+                    res['response']['text'] += 'о один из них правильный. Удачи'
+                    res['response']['text'] += '!'
                 res['response']['buttons'] = [
                     {
                         'title': 'Да',
@@ -287,6 +374,7 @@ def lat(res, req):
     # сюда попадаем, если попытка отгадать не первая
     # проверяем есть ли правильный ответ в сообщение
     return
+
 
 def stix(res, req):
     global stixi, frasa
@@ -412,6 +500,8 @@ def posl(res, req):
     # сюда попадаем, если попытка отгадать не первая
     # проверяем есть ли правильный ответ в сообщение
     return
+
+
 games = [stix, lat, posl]
 
 
@@ -420,7 +510,8 @@ def get_first_name(req):
     for entity in req['request']['nlu']['entities']:
         # находим сущность с типом 'YANDEX.FIO'
         if entity['type'] == 'YANDEX.FIO':
-            # Если есть сущность с ключом 'first_name', то возвращаем её значение.
+            # Если есть сущность с ключом 'first_name', то возвращаем её
+            # значение.
             # Во всех остальных случаях возвращаем None.
             return entity['value'].get('first_name', None)
 
