@@ -29,7 +29,7 @@ def main():
 
 
 def handle_dialog(res, req):
-    global frasa
+    global frasa, sessionStorage
     user_id = req['session']['user_id']
     if req['session']['new']:
         res['response']['text'] = 'Привет! Назови своё имя!'
@@ -111,6 +111,7 @@ def handle_dialog(res, req):
             elif 'нет' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
+                sessionStorage = {}
             elif 'помощь' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Я предлагаю тебе сыграть в игру. Я г'
                 res['response']['text'] += 'оворю тебе начало известной латинск'
@@ -202,6 +203,7 @@ def handle_dialog(res, req):
             elif 'хватит' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
+                sessionStorage = {}
             elif smesh:
                 res['response']['text'] = 'Внимательно читай материальную часть'
                 res['response']['text'] += '!)'
@@ -261,6 +263,7 @@ def handle_dialog(res, req):
             elif 'нет' in req['request']['nlu']['tokens']:
                 res['response']['text'] = 'Ну и ладно!'
                 res['end_session'] = True
+                sessionStorage = {}
             elif 'помощь' in req['request']['nlu']['tokens']:
                 if sessionStorage[user_id]['resim'] == 1:
                     res['response']['text'] = 'Я говорю тебе начало стихотворно'
@@ -315,7 +318,7 @@ def handle_dialog(res, req):
 
 
 def lat(res, req):
-    global latin, frasa
+    global latin, frasa, sessionStorage
     user_id = req['session']['user_id']
     if len(sessionStorage[user_id]['frasi']) == len(latin.keys()):
         res['response']['text'] = 'Ты победил!'
@@ -339,6 +342,8 @@ def lat(res, req):
         if len(sessionStorage[user_id]['frasi']) == len(latin.keys()):
             res['response']['text'] = 'Ты победил!'
             res['end_session'] = True
+            frasa = None
+            sessionStorage = {}
             return
         res['response']['text'] = 'Правильно! Сыграем ещё?'
         res['response']['buttons'] = [
@@ -378,7 +383,7 @@ def lat(res, req):
 
 
 def stix(res, req):
-    global stixi, frasa
+    global stixi, frasa, sessionStorage
     user_id = req['session']['user_id']
     if len(sessionStorage[user_id]['frasi']) == len(stixi.keys()):
         res['response']['text'] = 'Ты победил!'
@@ -402,6 +407,8 @@ def stix(res, req):
         if len(sessionStorage[user_id]['frasi']) == len(stixi.keys()):
             res['response']['text'] = 'Ты победил!'
             res['end_session'] = True
+            sessionStorage = {}
+            frasa = None
             return
         res['response']['text'] = 'Правильно! Сыграем ещё?'
         res['response']['buttons'] = [
@@ -441,7 +448,7 @@ def stix(res, req):
 
 
 def posl(res, req):
-    global poslov, frasa
+    global poslov, frasa, sessionStorage
     user_id = req['session']['user_id']
     if len(sessionStorage[user_id]['frasi']) == len(poslov.keys()):
         res['response']['text'] = 'Ты победил!'
@@ -465,6 +472,8 @@ def posl(res, req):
         if len(sessionStorage[user_id]['frasi']) == len(poslov.keys()):
             res['response']['text'] = 'Ты победил!'
             res['end_session'] = True
+            sessionStorage = {}
+            frasa = None
             return
         res['response']['text'] = 'Правильно! Сыграем ещё?'
         res['response']['buttons'] = [
